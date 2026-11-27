@@ -1,49 +1,72 @@
 package com.farsan.desknova
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import com.farsan.desknova.ui.BatteryReceiver
+import com.farsan.desknova.ui.BatteryState
+import com.farsan.desknova.ui.DesktopScreen
+import com.farsan.desknova.ui.NetworkState
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var batteryReceiver: BatteryReceiver
+
+    private val batteryState: MutableState<BatteryState> = mutableStateOf(BatteryState())
+    private val networkState: MutableState<NetworkState> = mutableStateOf(currentNetworkState(this))
+    private val clockTime: MutableState<String> = mutableStateOf("--:--")
+    private val clockDate: MutableState<String> = mutableStateOf("")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            DeskNovaTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("DeskNova")
-                }
+
+        // Keep the screen on while the app is open and in front
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        batteryReceiver = BatteryReceiver(
+            context = this,
+            onBatteryChanged = { state ->
+                batteryState.value = state
             }
+        )
+
+        setContent {
+            DesktopScreen(
+                context = this,
+                batteryState = batteryState.value,
+                networkState = networkState.value,
+                clockTime = clockTime.value,
+                clockDate = clockDate.value,
+                onStartClick = { /* Start button handled by DesktopScreen */ },
+                onClockTap = { /* Clock tap handled by DesktopScreen */ }
+            )
         }
     }
-}
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name", fontSize = 24.sp)
-}
-
-@Composable
-fun DeskNovaTheme(content: @Composable () -> Unit) {
-    MaterialTheme {
-        content()
+    override fun onStart() {
+        super.onStart()
+        networkState.value = currentNetworkState(this)
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    DeskNovaTheme {
-        Greeting("DeskNova")
+    override fun onStop() {
+        super.onStop()
+    }
+
+    fun reportNetworkState(state: NetworkState) {
+        networkState.value = state
+    }
+
+    private fun currentNetworkState(context: Context): NetworkState {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val info = cm.activeNetworkInfo
+        return NetworkState(
+            connected = info?.isConnectedOrConnecting == true,
+            available = true
+        )
     }
 }
