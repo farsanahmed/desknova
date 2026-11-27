@@ -1,0 +1,17 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+/Debug
+/public
+/captures
+/freeline
+*.iws
+.DS_Store
+/build/
+/app/build/
+*.zip
+gradle-*/
+platform-*.zip
+.harness/
+*.log

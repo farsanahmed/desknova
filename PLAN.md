@@ -1,51 +1,53 @@
-# PLAN.md - DeskNova Project Phases
+# DeskNova — Plan (numbered phases)
 
-## Phase 0: Environment, Docs, and Plan
-- **Goal**: Set up environment, write project documentation, initialize repo
-- **Acceptance Test**: All files written (AGENT.md, SPEC.md, STATUS.md, MEMORY.md, PLAN.md), git repo initialized, toolchain versions documented
-- **Phone Test**: Verify ADB/shell commands work, check available tools
+Each phase has ONE feature, an acceptance test, and what I (the user) test on the phone. Work one phase at a time. Build locally with `./gradlew`; preview via localhost before any APK.
 
-## Phase 1: Desktop + Taskbar + Clock + Battery
-- **Goal**: Basic desktop environment with taskbar showing clock and battery status
-- **Acceptance Test**: Home screen shows desk, taskbar at bottom with time/battery icons
-- **Phone Test**: Launch DeskNova, verify taskbar appears, clock updates, battery level shows
+## 0. Setup — environment, docs, plan
+- Feature: JDK/Gradle/Android SDK configured, AGENT.md/SPEC.md/STATUS.md/MEMORY.md/PLAN.md written, repo pushed to github.com/farsanahmed/desknova
+- Acceptance: `git remote -v` confirms the repo; documents exist; toolchain versions recorded
+- You test: browse the repo on GitHub; confirm README/docs are present
 
-## Phase 2: Start Menu with Real Installed Apps
-- **Goal**: Start menu displays real installed applications from the system
-- **Acceptance Test**: Start menu opens, lists apps with icons and names from package manager
-- **Phone Test**: Tap launcher icon, verify app list populates with real apps
+## 1. Desktop + taskbar + clock + battery
+- Feature: Compose desktop surface, taskbar with Start button and system tray; real clock (System.currentTimeMillis) and real battery (BatteryManager)
+- Acceptance: app launches on API 24+; taskbar renders; clock updates; battery % reads from BatteryManager (or shows "Unavailable" with reason if permission missing)
+- You test: open the app; confirm desktop + taskbar + clock + battery appear with real values
 
-## Phase 3: Window Manager (open, close, focus, minimize, maximize, drag, resize)
-- **Goal**: Windows can be created, moved, resized, minimized, maximized, closed
-- **Acceptance Test**: New windows can be dragged, resized via handles, minimized to taskbar, maximized, closed
-- **Phone Test**: Drag window with finger, use resize handles, minimize/maximize buttons work
+## 2. Start menu with real installed apps
+- Feature: Start menu listing real installed apps via PackageManager (queryIntentActivities with MAIN/LAUNCHER)
+- Acceptance: menu lists at least one real app with correct label/icon; tapping launches it in a window
+- You test: open Start menu; confirm installed apps appear; tap one to launch
 
-## Phase 4: Files (browse, folder ops, copy/cut/paste, sort, quick access, multi-select, search, share)
-- **Goal**: File manager with full operations
-- **Acceptance Test**: Browse directories, create/delete folders, copy/paste files, multi-select, search, share via system intent
-- **Phone Test**: Navigate to /sdcard, copy a file, paste elsewhere, search for filename
+## 3. Window manager
+- Feature: open/close/focus/minimize/maximize/restore, drag and resize windows; z-order; snap-to-grid; remember bounds
+- Acceptance: multiple windows open simultaneously; dragging moves a window; maximize fills; minimize hides; closing removes it
+- You test: open two apps; drag/resize/minimize/maximize; close one; confirm focus shifts correctly
 
-## Phase 5: Built-in Apps
-- **Goal**: Text editor, image viewer, media player working with real data
-- **Acceptance Test**: Open/create text file, view image, play local audio file
-- **Phone Test**: Create text file, edit it, view a photo from DCIM, play a short audio clip
+## 4. Files
+- Feature: browse real storage (Documents/Downloads/internal); create/rename/delete folders; copy/cut/paste; sort; quick access; multi-select; search; properties; share; dual-pane
+- Acceptance: real file listing; copy duplicates a file; delete removes it; share invokes a real share sheet; no destructive op without confirmation
+- You test: create a folder, copy a file into it, rename it, share it, delete it; confirm each reflects in a real file manager
 
-## Phase 6: Terminal and ADB
-- **Goal**: Local terminal with shell commands, basic ADB client functionality
-- **Acceptance Test**: Run `ls`, `ps`, `cat` commands; list installed packages
-- **Phone Test**: Terminal shows busybox commands, adb devices lists connected state
+## 5. Built-in apps
+- Feature: Text Editor, Image Viewer, Media Player, ZIP/7z/TAR/RAR, APK Manager, Task Manager, Storage Analyzer, Network Center, Clipboard
+- Acceptance: editor saves/reads a real text file; image viewer shows a real image; media player plays a real local file; archive lister shows real entries; APK manager lists real packages; task manager lists real tasks
+- You test: edit and save a note; view a photo; play an audio file; list an archive's contents; view installed packages
 
-## Phase 7: Desktop Experience (icons, wallpaper/themes, snapping, notifications, search, keyboard/mouse, recents, session restore)
-- **Goal**: Full desktop experience with personalization
-- **Acceptance Test**: Change wallpaper, snap window to edge, view notifications, search for apps, switch between recents, restore last session
-- **Phone Test**: Long-press desktop to change wallpaper, drag window to screen edge snaps, notification appears and can be tapped
+## 6. Terminal and ADB
+- Feature: local terminal (real shell via ProcessBuilder); ADB client where available
+- Acceptance: terminal runs a real command (e.g. `ls`); ADB shows devices or "Unavailable" with reason
+- You test: type a command in terminal; confirm output; try ADB, confirm devices or "Unavailable"
 
-## Phase 8: AI and Extras
-- **Goal**: AI assistant, diagnostics, accessibility features
-- **Acceptance Test**: AI assistant responds to basic queries, diagnostics shows memory usage, accessibility settings accessible
-- **Phone Test**: AI chat interface, diagnostics screen shows battery/ memory info, accessibility switch toggles
+## 7. Desktop experience
+- Feature: desktop icons/wallpaper/themes, window snapping, notifications, global search, keyboard/mouse, recents, session restore
+- Acceptance: wallpaper applies from a real image; snapping moves window to edge; notification posts via NotificationManager; search finds a real app
+- You test: set wallpaper; snap a window; trigger a notification; use keyboard shortcuts; reboot and confirm session restores
 
-## Phase 9: Quality and Release
-- **Goal**: Testing, bug fixes, release signing, final polishing
-- **Acceptance Test**: Debug APK builds successfully, passes basic tests, signed release ready
-- **Phone Test**: Install final APK, run through all features, verify no crashes
+## 8. AI and extras
+- Feature: AI assistant, virtual desktops, diagnostics, crash handler, accessibility, performance pass
+- Acceptance: assistant returns real answer or "Unavailable" with reason; diagnostics shows real RAM/storage/battery; crash handler catches and reports
+- You test: ask the assistant something; open diagnostics; confirm no fake data anywhere
+
+## 9. Quality and release
+- Feature: performance pass under 3–6 GB RAM, accessibility audit, debug build only (no APKs on GitHub), release notes
+- Acceptance: app starts in reasonable time; memory stays lean; `./gradlew :app:assembleDebug` builds cleanly
+- You test: run the app on the phone for extended use; confirm stability

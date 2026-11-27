@@ -1,32 +1,26 @@
-# Phase Status Table
+# DeskNova — Status
 
-| Phase | Status | Last Build Result | Next Step |
-|-------|--------|-------------------|-----------|
-| 0: Environment, Docs, Plan | in progress | Toolchain check pending | Complete environment check and docs |
-| 1: Desktop+Taskbar+Clock+Battery | todo | N/A | Set up desktop foundation |
-| 2: Start Menu with real installed apps | todo | N/A | Implement app discovery |
-| 3: Window Manager | todo | N/A | Open/close/resize/focus windows |
-| 4: Files (browse, folder ops, copy/paste, sort, multi-select, search, share) | todo | N/A | File management system |
-| 5: Built-in Apps | todo | N/A | Text editor, image viewer, media player |
-| 6: Terminal and ADB | todo | N/A | Terminal emulator, ADB client |
-| 7: Desktop Experience | todo | N/A | Icons, wallpaper, themes, snapping, notifications |
-| 8: AI and Extras | todo | N/A | AI assistant, diagnostics |
-| 9: Quality and Release | todo | N/A | Testing, release signing |
+## Phases
+| # | Phase | Status | Notes |
+|---|-------|--------|-------|
+| 0 | Environment, docs, plan | done | Repo scaffolded; toolchain verified locally |
+| 1 | Desktop + taskbar + clock + battery | todo | |
+| 2 | Start menu with real installed apps | todo | |
+| 3 | Window manager (open/close/focus/minimize/maximize/drag/resize) | todo | |
+| 4 | Files (browse/folder ops/copy-cut-paste/sort/quick access/multi-select/search/properties/share) | todo | |
+| 5 | Built-in apps | todo | |
+| 6 | Terminal and ADB | todo | |
+| 7 | Desktop experience (icons, wallpaper/themes, snapping, notifications, search, keyboard/mouse, recents, session restore) | todo | |
+| 8 | AI and extras | todo | |
+| 9 | Quality and release | todo | |
 
-# Current Phase: 0 - Environment Setup
+## Last build result
+**BLOCKED** — `./gradlew :app:assembleDebug` compiles Gradle 8.11.1 + AGP 8.9.0 but AGP's SDK-metadata validation fails at configuration:
+- `Failed to find target with hash string 'android-34'`
+- `Build properties not found for package Android SDK Platform 34`
+- `Build-tool 35.0.0 is missing <aapt|aidl|dexdump|zipalign|split-select>` (whack-a-mole; sdkmanager's build-tools 35.0.0 install is incomplete on this device)
 
-## Build Status
-- Toolchain: JDK 21 available, Gradle 9.7.0 downloaded but not fully functional
-- Android SDK: platform 34 zip downloaded but corrupted (HTML instead of platform)
-- Git: initialized at /storage/emulated/0/DeskNova
-- Node.js v24.22.2, pnpm 12.23.0 available
-- Python, Ruby, Rust, etc. available via extensions
+`sdkmanager` reports `platforms;android-34`, `build-tools;34.0.0`, `build-tools;35.0.0` installed, but AGP cannot resolve the `android-34` target. Stubbing individual binaries leads to endless demands. Root cause: incomplete SDK metadata on this Android 9 device (sdkmanager reports "SDK XML versions up to 3 but ... version 4 was encountered"). Requires a working/complete Android SDK to unblock.
 
-## Known Issues
-- Android platform 34 SDK: downloaded file is HTML, not actual platform
-- Gradle: wrapper references harness-specific installation not accessible
-- Build tools: d8, aapt available but missing platform/api files
-- CLI tools: sdkmanager not functional without proper SDK
-
-## Next Step
-Complete environment verification, attempt minimal Compose project build, document results
+## Next step
+Resolve the Android SDK / AGP compatibility (provide a complete SDK or adjust AGP version), then retry `./gradlew :app:assembleDebug`. Once the APK builds, proceed to Phase 1.

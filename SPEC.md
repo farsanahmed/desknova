@@ -1,79 +1,83 @@
-Vision:
-DeskNova is an Android app that gives the user the real feeling of using a PC on a phone: a desktop with a taskbar, Start menu, movable and resizable windows, a file manager, text editor, terminal, task manager, APK manager and more. It is NOT just a launcher. Everything must be real (real Android APIs, real data). If something is unavailable on the device, show "Unavailable" with a short reason.
+# DeskNova — Product Specification
 
-Target Device Limits (Android 9, minSdk 24, 3-6 GB RAM):
-- No Wireless Debugging (Android 9 does not support it natively)
-- No Windows apps without a separate emulator
-- Other apps cannot be shown inside our windows
-- No direct file system access outside scoped storage
-- No SELinux disabling without root
-- Activities launched from within windows follow standard Android lifecycle
+## Vision
+DeskNova gives the user the real feeling of using a PC on a phone: a desktop with a taskbar, Start menu, movable/resizable windows, a file manager, text editor, terminal, task manager, APK manager, and more. It is NOT just a launcher. Everything must be real — real Android APIs, real data. If something is unavailable on the device, show "Unavailable" with a short reason. Never fake data.
 
-Modules:
-1. Window Manager: open, close, focus, minimize, maximize, drag, resize windows
-2. Taskbar: persistent, app icons, clickable, shows running apps
-3. Start Menu: app drawer, recent apps, power options
-4. Desktop Icons: placeable, clickable, long-press to move
-5. Files: browse, folder ops, copy/cut/paste, sort, quick access, multi-select, search, properties/share
-6. Text Editor: create, open, edit, save text files
-7. Image Viewer: view PNG/JPEG/WebP/GIF, basic zoom/pan
-8. Media Player: play/pause/stop, seek, volume control for common audio/video
-9. ZIP/7z/TAR/RAR: extract, list contents, simple compress
-10. APK Manager: install, uninstall, view permissions, list installed apps
-11. Task Manager: show running processes, memory usage, force stop
-12. Storage Analyzer: scan storage, show used space, identify large files
-13. Network Center: WiFi/Cellular status, data usage per app
-14. Clipboard: copy/paste text between apps
-15. Local Terminal: shell commands, adb commands
-16. ADB Client: install/uninstall APKs, shell commands
-17. Settings/Themes/Wallpaper: appearance customization
-18. Notifications Center: view and interact with notifications
-19. Global Search and Command Palette: search apps, files, settings
-20. Keyboard and Mouse Support: trackball, mouse events, keyboard input
-21. Recents and Favorites: switch between apps, pin frequently used
-22. Session Restore: restore previous session state
-23. Dual-Pane Files: two-pane view on large screens
-24. Virtual Desktops: multiple desktop spaces, switch between them
-25. AI Assistant: help with commands, generate code snippets
-26. Diagnostics: performance monitoring, memory usage, battery stats
-27. Release Process: build, sign, align, release APK
+## Target
+- Language: Kotlin, UI: Jetpack Compose
+- minSdk 24, compileSdk/targetSdk 34, works on Android 9 (API 28)
+- Phone RAM: 3–6 GB (keep the process lean; avoid heavy in-memory caches)
+- Android 9 limitations: no Wireless Debugging, no running Windows apps without a separate emulator, other apps cannot be displayed inside our windows (Android does not embed arbitrary app UIs)
 
-Extra Features:
-- Window snapping: auto-snap to edges/halves/quarters
-- First-run tutorial: guided tour on first launch
-- External display note: extended display support
-- Crash handler: graceful error reporting
-- Accessibility: screen reader support, contentDescription support
-- Performance pass: memory optimization, ANR prevention
+## Modules
 
-Window Snapping:
-- User can drag window to screen edge to auto-snap
-- Support: left, right, top, bottom halves
-- Optional: quadrant snap (TL, TR, BL, BR)
-- Visual feedback during drag
+### 1. Window Manager
+Open, close, focus, minimize, maximize, restore, drag, resize windows. Each window hosts a real Compose/Android view. Window stack with z-order, snap-to-grid/snapping edges, remember bounds per session.
 
-First-Run Tutorial:
-- Show on first launch only
-- Covers: window dragging, taskbar use, Start menu, file manager basics
-- Option to skip and re-enable in settings
+### 2. Taskbar
+Start button, pinned/running app icons, system tray (clock, battery, network, notifications), show desktop, task switching.
 
-External Display Note:
-- If device supports video output, note capability
-- Show mirroring status or limitations
+### 3. Start Menu
+Real installed apps (query PackageManager), grouped/pinned, search within menu, launch into a window.
 
-Crash Handler:
-- Catch unhandled exceptions
-- Provide report sending option
-- Log essential state (not private user data)
+### 4. Desktop Icons
+Wallpaper, icon grid, add/remove shortcuts (apps, folders, files), open on tap/double-tap.
 
-Accessibility:
-- All controls have contentDescription
-- Screen reader compatible
-- High contrast theme option
-- Font size scaling
+### 5. Files
+Browse real storage (Documents, Downloads, internal), folder ops (create/rename/delete), copy/cut/paste, sort (name/date/size/type), quick access, multi-select, search, properties, share, dual-pane mode, confirm before any destructive file op.
 
-Performance:
-- Window composition limited to visible windows
-- Memory usage monitoring
-- Battery optimization whitelist
-- ANR prevention for main UI thread
+### 6. Built-in Apps
+- Text Editor: real create/read/write/save of text files
+- Image Viewer: view real images
+- Media Player: play real local media (MediaPlayer/ExoPlayer)
+- ZIP/7z/TAR/RAR: list and extract real archives (no fake contents)
+- APK Manager: list installed packages, uninstall (with confirmation), install local APKs, show details
+- Task Manager: real running processes/tasks, kill with confirmation
+- Storage Analyzer: real disk usage via StorageManager/File paths
+- Network Center: real Wi-Fi/cellular status via ConnectivityManager (read-only where permission-limited)
+- Clipboard: real system clipboard read/write
+- Local Terminal: real shell (command execution via ProcessBuilder/APK shell where available)
+- ADB client: adb over TCP/USB where available, else "Unavailable"
+
+### 7. Settings / Themes / Wallpaper
+Theme switching, wallpaper picker (real image file), font/scale, language.
+
+### 8. Notifications Center
+Real posted notifications via NotificationManager, dismiss, open.
+
+### 9. Global Search & Command Palette
+Search apps, files, settings; run commands (open app, open file, settings).
+
+### 10. Keyboard & Mouse Support
+Keyboard shortcuts, mouse hover/click, external keyboard.
+
+### 11. Recents & Favorites
+Recent apps/files, pinned favorites.
+
+### 12. Session Restore
+Save/restore open windows and bounds across process death/reboot.
+
+### 13. Virtual Desktops
+Multiple named desktops, switch between them.
+
+### 14. AI Assistant
+Optional local/remote assistant. If unavailable, show "Unavailable" with reason. Never fake responses.
+
+### 15. Diagnostics
+Device info, RAM, storage, battery health, build version, logs.
+
+### 16. Crash Handler
+Catch uncaught exceptions, show a real error dialog, offer to save logs; never crash silently.
+
+### 17. Release Process
+Debug builds only locally; APKs never pushed to GitHub; release via sideload only.
+
+## Extra Features (excellence)
+- Window snapping (drag to edge/corner)
+- First-run tutorial
+- External display note (document behavior on second display)
+- Accessibility (content descriptions, talkback-friendly)
+- Performance pass (startup time, jank, memory under 3–6 GB RAM)
+
+## Non-Goals for Phase 0
+No app features. Only environment setup and project documents (AGENT.md, SPEC.md, STATUS.md, MEMORY.md, PLAN.md).

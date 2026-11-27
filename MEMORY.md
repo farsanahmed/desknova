@@ -1,39 +1,39 @@
-# MEMORY.md - DeskNova Project
+# DeskNova — Memory (decisions, versions, known problems, lessons)
 
-## Decisions Made
+## Versions used
+- JDK: 21.0.13.1 (OpenJDK) — JAVA_HOME=/data/data/com.androidharness.app/files/linux/lib/jvm/java-21-openjdk
+- Gradle: 8.11.1 (downloaded to HARNESS_SCRATCH; system `gradle` package is broken: missing libnative-platform.so)
+- AGP: 8.9.0 (pinned via settings.gradle resolutionStrategy; AGP 8.10.0 requires Gradle >= 8.11.1)
+- Kotlin: 1.9.24 (kotlin-gradle-plugin)
+- Compose BOM: 2024.10.00; Compose compiler extension 1.5.14
+- compileSdk/targetSdk: 34; minSdk: 24
+- package: com.farsan.desknova
+- Git: 2.56.1; gh: 2.106.0 (authenticated)
+- Android SDK: $HOME/android-sdk (platforms/android-34 via android_sdkinstall; build-tools via sdkmanager/cmdline-tools)
 
-### Toolchain Versions
-- **JDK**: OpenJDK 21.0.13.1 (available via engine extensions)
-- **OpenJDK 17**: Also available (17.0.21.1)
-- **Node.js**: v24.22.2 (via engine)
-- **pnpm**: 12.23.0 (via engine)
-- **Git**: 2.56.1 (via engine extensions)
-- **Gradle**: 9.7.0 downloaded but functional issues with wrapper
-- **Android SDK**: platform-34.zip downloaded but corrupted (contains HTML instead of SDK)
+## Environment notes
+- Device: Android 9, API 28, ABI aarch64, app UID 10859
+- Workspace filesystem (/storage/emulated/0/...) is mounted `noexec` — `./gradlew` cannot direct-exec; run via `bash gradlew`
+- Gradle native-service extraction needs a writable/exec TMPDIR: export TMPDIR=$HOME/tmp, GRADLE_OPTS="-Djava.io.tmpdir=$HOME/tmp", GRADLE_USER_HOME=$HOME/.gradle
+- HARNESS_SCRATCH=/data/user/0/com.androidharness.app/files/.harness-scratch (holds downloaded gradle distributions)
+- git/gh authenticated; HTTPS remotes auto-rewritten with token; no ssh binary
 
-### Project Structure
-- Root: /storage/emulated/0/DeskNova/
-- Android module: /storage/emulated/0/DeskNova/Deskova/ (subdirectory)
-- SDK: /storage/emulated/0/DeskNova/android-sdk/ (partial - platforms dir exists but empty)
-- Gradle wrapper: references harness-specific installation
+## Build blocker (open)
+`./gradlew :app:assembleDebug` is BLOCKED at AGP configuration:
+- `Failed to find target with hash string 'android-34'`
+- `Build properties not found for package Android SDK Platform 34`
+- `Build-tool 35.0.0 is missing <aapt|aidl|dexdump|zipalign|split-select>`
+- sdkmanager lists platforms;android-34, build-tools;34.0.0, build-tools;35.0.0 as installed, but AGP cannot resolve the target
+- Root cause: incomplete SDK metadata on this Android 9 device (sdkmanager: "SDK XML versions up to 3 but ... version 4 was encountered")
+- Requires a complete/working Android SDK to unblock. Do NOT fake a build.
 
-### Known Problems
-1. **Android platform 34**: Downloaded file is HTML (Google changed download URL or blocking), need alternative source
-2. **Gradle wrapper**: Points to /data/user/0/com.androidharness.app/files/.harness-scratch/gradle-8.10.2/ which is not accessible (Permission denied)
-3. **SDK platforms**: Only platform-34.zip attempted, no build-tools yet
-4. **API level**: compileSdk 24 used as fallback, minSdk 24 confirmed workable
-5. **Device constraints**: Android 9 (API 28) minSdk, 3-6 GB RAM target
+## Lessons learned
+- System `gradle` package is unusable (missing libnative-platform.so); download a standalone Gradle distribution instead
+- `python3 zipfile` extraction drops exec bits — `chmod +x` scripts after extracting
+- Do not stub individual SDK binaries for AGP; it demands ever more files
+- local.properties is machine-specific — gitignored, not committed
 
-### Lessons Learned
-- Direct SDK zip downloads from Google may be blocked or redirect; consider mirrors or Termux packages
-- Gradle wrapper in Android-on-Android setups often references internal paths; using standalone gradle 9.7.0 bin is more reliable
-- Java 21 works but some SSL/TLS issues may occur with remote downloads
-- Termux extension catalog (pnpm exec termux-*) may provide easier SDK installation
-- Always verify downloaded files (file command, checksums) before assuming they are valid
-- bionic libc vs glibc: Android builds need platform 34 jars, not generic linux jars
-
-### Next Steps (to be updated after Phase 0)
-- Fix Android platform 34 source
-- Resolve Gradle wrapper to use standalone gradle 9.7.0
-- Attempt minimal Compose project build
-- Report build result and APK status
+## Decisions
+- AGP 8.9.0 + Gradle 8.11.1 (AGP 8.10.0 needs Gradle >= 8.11.1; 8.9.0 is the newest that declares compatibility with 8.11.1 per the version-check error)
+- Single `app` module; removed stray pre-existing `DeskNova/` subproject (pinned AGP 9.3.1, incompatible with Gradle 8.x)
+- No app features in Phase 0
